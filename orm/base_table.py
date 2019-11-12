@@ -19,6 +19,8 @@ def convert_object_field_to_db_field(obj_field_value):
         db_value = "'" + obj_field_value + "'"
     elif type(obj_field_value) is bool:
         db_value = int(obj_field_value)
+    elif obj_field_value is None:
+        db_value = 'NULL'
     else:
         raise Exception('Unsupport type %s' % obj_field_value)
 
@@ -40,6 +42,7 @@ class BaseTable:
         sql_fields_str = ''
         for attr_value in obj_attr_dict.values():
             db_field_value = convert_object_field_to_db_field(attr_value)
+            # Concat the fields' values
             if type(db_field_value) is int:
                 sql_fields_str += str(db_field_value)
             elif type(db_field_value) is str:
@@ -91,13 +94,24 @@ class BaseTable:
 
     def save(self):
         _object = self.__dict__
-        _class = self.__class__.__dict__
+        _class = {}
+        for attr_name, attr_value in self.__class__.__dict__.items():
+            if isinstance(attr_value, BaseField):
+                _class[attr_name] = attr_value
+
         obj_to_save = {}
         # Check attribute of object and compare with class fields, if same get it
         for attr_name, attr_value in _object.items():
             if attr_name in _class and _is_compatible(
                     type(_object[attr_name]), type(_class[attr_name])):
                 obj_to_save[attr_name] = attr_value
+
+        # Populate primary key and default values
+        for attr_name in _class:
+            if attr_name not in obj_to_save:
+                obj_to_save[attr_name] = _class[attr_name].default
+            if _class[attr_name].primary_key:
+                obj_to_save['primary_key'] = attr_name
 
         print('Object to save', obj_to_save)
         if not self._check_table_exists():

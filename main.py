@@ -57,12 +57,12 @@ if __name__ == '__main__':
     # Some examples of ORM
     Database.init_db('lib_man.db')
     # print(cursor.execute('SELECT * from book').fetchall())
-    # book = Book()
-    # book.id = 3
-    # book.title = 'B3'
-    # book.description = 'D3'
+    book = Book()
+    book.id = 4
+    book.title = 'B3'
+    book.description = 'D3'
     # book.author = 'SGK'
-    # book.save()
+    book.save()
 
     # TODO Handle default values of columns, primary keys...
     # journal = Journal()
