@@ -1,2 +1,1 @@
 Book|Clean Code|Clean Code – A Handbook Of Agile Software Craftmanship|Robert C. Martin
-Book|Code Complete 2|Code Complete 2|Steve McConnell

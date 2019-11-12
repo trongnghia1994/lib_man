@@ -1,25 +1,31 @@
+from orm import BaseTable
+from orm.fields import IntergerField, TextField
+
+
 class LibItem:
-    def __init__(self, id, title='', description=''):
-        self.id = id
-        self.title = title
-        self.description = description
+    def __init__(self):
+        pass
 
 
-class Book(LibItem):
-    def __init__(self, id='', title='', description='', author=''):
-        LibItem.__init__(self, id, title, description)
-        self.author = author
-        self.type = 'Book'
+class Book(LibItem, BaseTable):
+    __table_name__ = 'Book'
+
+    id = IntergerField()
+    title = TextField()
+    description = TextField()
+    author = TextField()
 
     def __str__(self):
         return '%s|%s|%s|%s' % (self.type, self.title, self.description, self.author)
 
 
-class Journal(LibItem):
-    def __init__(self, id='', title='', description='', event=''):
-        LibItem.__init__(self, id, title, description)
-        self.event = event
-        self.type = 'Journal'
+class Journal(LibItem, BaseTable):
+    __table_name__ = 'Journal'
+
+    id = IntergerField()
+    title = TextField()
+    description = TextField()
+    event = TextField()
 
     def __str__(self):
         return '%s|%s|%s|%s' % (self.type, self.title, self.description, self.event)
