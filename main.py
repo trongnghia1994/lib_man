@@ -4,6 +4,7 @@ import json
 from utils.search import SearchUtil, SearchResult, LibEntitySearchHelper
 from utils.printer import NPrinter
 from utils.exporter import FileExporter
+from utils.search import SimpleSearchCondition
 from models import DATA
 
 from flask import Flask, request, make_response
@@ -15,20 +16,20 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    search_conditions = {}
     query = request.values.get('query')
+    operator = request.values.get('operator', 'AND')
     if query:
-        search_conditions = {
+        search_condition = SimpleSearchCondition({
             'title': query,
             'description': query,
             'author': query,
-        }
+        }, operator)
 
-    if search_conditions:
+    if search_condition:
         nprinter = NPrinter()
         fexporter = FileExporter('exports.txt')
         search_helper = LibEntitySearchHelper()
-        search_util = SearchUtil(search_conditions, search_helper, DATA)
+        search_util = SearchUtil(search_condition, search_helper)
 
         # Fetch data
         data = search_util.do_search()
@@ -45,35 +46,15 @@ def index():
 
 
 if __name__ == '__main__':
+    Database.init_db('lib_man.db')
     # Run directly
     # nprinter = NPrinter()
     # fexporter = FileExporter('exports.txt')
-    # conditions = {'title': 'Truyen ngan'}
-    # search_util = LibEntitySearchUtil()
-    # search_result = SearchResult(conditions, search_util, DATA, nprinter, fexporter)
-    # search_result.do_search()
-    # search_result.get_results()
+    search_condition = SimpleSearchCondition({'title': 'B1'})
+    search_helper = LibEntitySearchHelper()
+    search_util = SearchUtil(search_condition, search_helper)
+    # Fetch data
+    data = search_util.do_search()
+    print(data)
 
-    # Some examples of ORM
-    Database.init_db('lib_man.db')
-    # print(cursor.execute('SELECT * from book').fetchall())
-    book = Book()
-    book.id = 4
-    book.title = 'B3'
-    book.description = 'D3'
-    # book.author = 'SGK'
-    book.save()
-
-    # TODO Handle default values of columns, primary keys...
-    # journal = Journal()
-    # journal.id = 1
-    # journal.title = 'J1'
-    # journal.description = 'J1'
-    # journal.event = 'HCM Journal'
-    # journal.save()
-    # for row in Book.find({'title': 'B2', 'id': 1}, operator='OR'):
-    #     print(row['id'])
-
-    journals = Journal.find({'title': 'J1', 'id': 1})
-    for row in journals:
-        print(row['id'], row['title'])
+    # app.run('0.0.0.0', debug=True)

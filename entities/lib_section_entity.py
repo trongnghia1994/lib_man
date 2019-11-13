@@ -1,3 +1,7 @@
+from orm import BaseTable
+from orm.fields import IntergerField, TextField
+
+
 class LibSection:
     def __init__(self, id, name='', description=''):
         self.id = id
@@ -8,15 +12,23 @@ class LibSection:
         return '%s|%s' % (self.name, self.description)
 
 
-class CirculationSection(LibSection):
-    def __init__(self, id='', name='', description='', security_staff_name=''):
-        LibSection.__init__(self, id, name, description)
-        self.security_staff_name = security_staff_name
-        self.type = 'CirculationSection'
+class CirculationSection(LibSection, BaseTable):
+    """The books section with a lot of books arranged into categories"""
+
+    __table_name__ = 'circular_section'
+
+    id = IntergerField(primary_key=True)
+    name = TextField()
+    description = TextField()
+    no_items = IntergerField()
 
 
-class MultimediaSection(LibSection):
-    def __init__(self, id='', name='', description='', computers=[]):
-        MultimediaSection.__init__(self, id, name, description)
-        self.computers = computers
-        self.type = 'MultimediaSection'
+class MultimediaSection(LibSection, BaseTable):
+    """The multimedia section with a lot of computers, electronic devices"""
+
+    __table_name__ = 'multimedia_section'
+
+    id = IntergerField(primary_key=True)
+    name = TextField()
+    description = TextField()
+    no_computers = IntergerField()

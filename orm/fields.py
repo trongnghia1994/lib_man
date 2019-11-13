@@ -5,15 +5,12 @@ class BaseField:
 
 
 class IntergerField(BaseField):
-    def __init__(self):
-        BaseField.__init__(self)
+    pass
 
 
 class TextField(BaseField):
-    def __init__(self):
-        BaseField.__init__(self)
+    pass
 
 
 class BooleanField(BaseField):
-    def __init__(self):
-        BaseField.__init__(self)
+    pass

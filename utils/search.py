@@ -1,16 +1,24 @@
 from abc import ABCMeta, abstractmethod
 from .exporter import IExporter
 from .printer import IPrinter
+from entities.lib_entity import LibItem
+
+
+class SearchCondition:
+    __metaclass__ = ABCMeta
+
+
+class SimpleSearchCondition(SearchCondition):
+    def __init__(self, fields_data: dict, operator: str = 'AND'):
+        self.fields_data = fields_data
+        self.operator = operator
 
 
 class SearchHelper:
     __metaclass__ = ABCMeta
 
-    def set_conditions(self, conditions):
-        self.conditions = conditions
-
-    def set_data(self, data):
-        self.data = data
+    def set_condition(self, condition: SearchCondition):
+        self._condition = condition
 
     @abstractmethod
     def execute(self):
@@ -21,33 +29,17 @@ class LibEntitySearchHelper(SearchHelper):
     def __init__(self):
         SearchHelper.__init__(self)
 
-    def __field_satisfied(self, data_field, input):
-        if not data_field:
-            return False
-        return input.lower() in data_field.lower()
-
     def execute(self):
-        results = []
-        for data_item in self.data:
-            satisfied = False
-            for field in self.conditions:
-                if self.__field_satisfied(getattr(data_item, field, None), self.conditions[field]):
-                    satisfied = True
-                    break
-
-            if satisfied:
-                results.append(data_item)
-
+        results = LibItem.find(self._condition.fields_data, self._condition.operator, recursive=True)
         return results
 
 
 class SearchUtil:
-    def __init__(self, conditions: dict, search_helper: SearchHelper, data):
+    def __init__(self, condition: SearchCondition, search_helper: SearchHelper):
         self.results = []
-        self.conditions = conditions
+        self.condition = condition
         self.search_helper = search_helper
-        self.search_helper.set_conditions(conditions)
-        self.search_helper.set_data(data)
+        self.search_helper.set_condition(condition)
 
     def do_search(self):
         return self.search_helper.execute()

@@ -127,12 +127,29 @@ class BaseTable:
             print('Insert successfully')
 
     @classmethod
-    def find(cls, filer_dict={}, operator='AND'):
-        sql_str = cls.construct_select_statement(filer_dict, operator)
+    def _find(cls, filter_dict={}, operator='AND'):
+        sql_str = cls.construct_select_statement(filter_dict, operator)
         print(sql_str)
         db = Database.get_db_instance()
         cursor = db.cursor()
-        return cursor.execute(sql_str).fetchall()
+        results = []
+        for db_row in cursor.execute(sql_str).fetchall():
+            obj = cls()
+            obj.__dict__.update(dict(db_row))
+            results.append(obj)
+
+        return results
+
+    @classmethod
+    def find(cls, filter_dict={}, operator='AND', recursive=False):
+        results = []
+        if not recursive:
+            results = cls._find(filter_dict, operator)
+        else:
+            for sub_class in cls.__subclasses__():
+                results.extend(sub_class._find(filter_dict, operator))
+
+        return results
 
     def delete(self):
         pass
