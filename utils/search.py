@@ -29,8 +29,11 @@ class LibEntitySearchHelper(SearchHelper):
     def __init__(self):
         SearchHelper.__init__(self)
 
+    def set_query(self, query):
+        self._query = query
+
     def execute(self):
-        results = LibItem.find(self._condition.fields_data, self._condition.operator, recursive=True)
+        results = LibItem.find(self._condition.fields_data, self._condition.operator, recursive=True, search_like=True)
         return results
 
 

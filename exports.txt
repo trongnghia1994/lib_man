@@ -1,1 +1,0 @@
-Book|Clean Code|Clean Code – A Handbook Of Agile Software Craftmanship|Robert C. Martin

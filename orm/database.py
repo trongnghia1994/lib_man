@@ -7,7 +7,7 @@ class Database:
     @staticmethod
     def init_db(conn_str):
         if Database.conn is None:
-            Database.conn = sqlite3.connect(conn_str)
+            Database.conn = sqlite3.connect(conn_str, check_same_thread=False)
             Database.conn.row_factory = sqlite3.Row
 
     @staticmethod

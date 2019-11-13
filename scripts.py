@@ -44,9 +44,12 @@ def create_test_data():
 # print([(r.id, r.title) for r in results])
 
 # init_db()
-book = Book()
-# book.id = 6
-book.title = '3 nguoi thay vi dai'
-# book.description = 'New Book'
-book.author = 'N/A'
-book.save()
+# book = Book()
+# # book.id = 6
+# book.title = '3 nguoi thay vi dai'
+# # book.description = 'New Book'
+# book.author = 'N/A'
+# book.save()
+
+results = LibItem.find({'id': 1, 'title': 'dai'}, search_like=True, recursive=True)
+print(results)
