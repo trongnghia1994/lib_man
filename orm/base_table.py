@@ -54,10 +54,18 @@ class BaseTable:
             sql_fields_str = sql_fields_str[:-1]
 
         if sql_fields_str:
-            sql_string = 'INSERT INTO %s VALUES (%s)' % (table_name, sql_fields_str)
+            fields_to_insert = ','.join(obj_attr_dict.keys())
+            sql_string = 'INSERT INTO %s (%s) VALUES (%s)' % (table_name, fields_to_insert, sql_fields_str)
             return sql_string
         else:
             raise Exception('Object attributes null')
+
+    def construct_delete_statement(self, primary_key_field):
+        '''Construct SQL insert statement from object attributes dict'''
+        table_name = self.__class__.__table_name__
+
+        db_field_value = convert_object_field_to_db_field(primary_key_field['value'])
+        return 'DELETE FROM %s WHERE %s = %s' % (table_name, primary_key_field['name'], db_field_value)
 
     @classmethod
     def construct_select_statement(cls, filter_dict={}, operator='AND'):
@@ -88,6 +96,7 @@ class BaseTable:
         table_name = self.__class__.__table_name__
         db = Database.get_db_instance()
         query = "SELECT name FROM sqlite_master WHERE type='table' AND name='%s';" % table_name
+        print(query)
         cursor = db.cursor()
         table_existed = cursor.execute(query).fetchone()
         return table_existed
@@ -106,12 +115,10 @@ class BaseTable:
                     type(_object[attr_name]), type(_class[attr_name])):
                 obj_to_save[attr_name] = attr_value
 
-        # Populate primary key and default values
+        # Populate default values for non-primary key field
         for attr_name in _class:
-            if attr_name not in obj_to_save:
+            if attr_name not in obj_to_save and not _class[attr_name].primary_key:
                 obj_to_save[attr_name] = _class[attr_name].default
-            if _class[attr_name].primary_key:
-                obj_to_save['primary_key'] = attr_name
 
         print('Object to save', obj_to_save)
         if not self._check_table_exists():
@@ -120,9 +127,10 @@ class BaseTable:
         else:
             # Insert a new row
             sql_str = self.construct_insert_statement(obj_to_save)
+            print(sql_str)
             db = Database.get_db_instance()
             cursor = db.cursor()
-            print(cursor.execute(sql_str))
+            cursor.execute(sql_str)
             db.commit()
             print('Insert successfully')
 
@@ -152,4 +160,21 @@ class BaseTable:
         return results
 
     def delete(self):
-        pass
+        obj = self.__dict__
+        # Find primary key field
+        primary_key_field = None
+        for attr_name, attr_value in self.__class__.__dict__.items():
+            if isinstance(attr_value, BaseField) and attr_value.primary_key:
+                primary_key_field = {'name': attr_name, 'value': obj[attr_name]}
+                break
+
+        if not primary_key_field:
+            raise Exception('Cannot find primary key')
+
+        sql_str = self.construct_delete_statement(primary_key_field)
+        print(sql_str)
+        db = Database.get_db_instance()
+        cursor = db.cursor()
+        cursor.execute(sql_str)
+        db.commit()
+        print('Delete successfully')

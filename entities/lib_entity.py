@@ -9,7 +9,7 @@ class LibItem(BaseTable):
 class Book(LibItem):
     __table_name__ = 'Book'
 
-    id = IntergerField()
+    id = IntergerField(primary_key=True)
     title = TextField()
     description = TextField()
     author = TextField()
@@ -21,7 +21,7 @@ class Book(LibItem):
 class Journal(LibItem):
     __table_name__ = 'Journal'
 
-    id = IntergerField()
+    id = IntergerField(primary_key=True)
     title = TextField()
     description = TextField()
     event = TextField()

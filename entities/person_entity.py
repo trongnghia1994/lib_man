@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
+from orm import BaseTable
+from orm.fields import IntergerField, TextField
 
 
-class PersonEntity:
+class PersonEntity(BaseTable):
     __metaclass__ = ABCMeta
 
 
@@ -13,19 +15,22 @@ class Borrowable:
         pass
 
 
-class BookManageable:
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def manage(self):
-        pass
-
-
 class Student(PersonEntity, Borrowable):
+    __table_name__ = 'Student'
+
+    id = IntergerField(primary_key=True)
+    name = TextField()
+
     def borrow(self):
         print('Borrow')
 
 
-class Librarian(PersonEntity, BookManageable):
-    def manage(self):
-        print('Manage')
+class Teacher(PersonEntity, Borrowable):
+    __table_name__ = 'Teacher'
+
+    id = IntergerField(primary_key=True)
+    name = TextField()
+    faculty = TextField()
+
+    def borrow(self):
+        print('Borrow')
