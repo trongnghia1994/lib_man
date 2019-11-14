@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import json
-from utils.search import SearchUtil, SearchResult, LibEntitySearchHelper
-from utils.printer import NPrinter
-from utils.exporter import FileExporter
-from utils.search import SimpleSearchCondition
-from models import DATA
 
 from flask import Flask, request, make_response, abort
-from orm import Database
+
 from entities.lib_entity import Book, Journal, LibItem
 from entities.loan_entity import LoanEntity
+from orm import Database
+from utils.exporter import FileExporter
+from utils.printer import NPrinter
+from utils.search import SearchUtil, SearchResult, LibEntitySearchHelper
+from utils.search import SimpleSearchCondition
 
 app = Flask(__name__)
 
@@ -55,10 +55,17 @@ def index():
 @app.route('/', methods=['DELETE'])
 def delete():
     id = request.values.get('id')
+    type = request.values.get('type')
     if not id:
         return abort(400)
 
-    data = LibItem.find({'id': id}, recursive=True)
+    if type == 'Book':
+        data = Book.find({'id': id})
+    elif type == 'Journal':
+        data = Journal.find({'id': id})
+    else:
+        raise Exception('Type not supported')
+
     for obj in data:
         obj.delete()
 
@@ -102,6 +109,7 @@ def loan():
     loan = LoanEntity()
     loan.lib_item_id = lib_item_id
     loan.lib_item_type = lib_item_type
+    loan.person_id = int(1)
     loan.borrow_date = '13-11-2019'
     loan.return_date = '15-11-2019'
     loan.save()
