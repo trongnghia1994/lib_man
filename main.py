@@ -5,6 +5,7 @@ import json
 from flask import Flask, request, make_response
 
 from entities.lib_entity import Book, Journal, LibItem
+from entities.loan_entity import LoanEntity
 from orm.database import Database
 from orm.query import QueryObject, Criteria, MatchCriteria
 from utils.exporter import FileExporter
@@ -79,11 +80,27 @@ if __name__ == '__main__':
     #     journal.save()
 
     # Find
-    query_obj = QueryObject(LibItem, recursive=True)
-    query_obj.add_criteria(Criteria.greater_than('id', 1))
+    query_obj = QueryObject(LoanEntity, recursive=False)
+    query_obj.add_criteria(Criteria.greater_than('id', 5))
     # query_obj.add_criteria(Criteria.equal_to('title', 'Book title'))
     # query_obj.add_criteria(MatchCriteria('description', 'Book'))
     results = query_obj.execute()
     for obj in results:
         print(obj)
-    print(results)
+    # obj_to_del = results[0]
+    # print(obj_to_del)
+    # obj_to_del.delete()
+
+    # book = Book()
+    # book.title = 'Book test 2'
+    # book.description = 'Description for Book test 2'
+    # book.author = 'Author test 2'
+    # book.save()
+
+    # for i in range(10):
+    #     loan = LoanEntity()
+    #     loan.person_id = 1
+    #     loan.person_type = 'Student' if i % 2 == 0 else 'Teacher'
+    #     loan.borrow_date = '18-11-2019'
+    #     loan.return_date = '28-11-2019'
+    #     loan.save()

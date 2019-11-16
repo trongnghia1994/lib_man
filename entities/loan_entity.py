@@ -1,4 +1,4 @@
-from orm import BaseTable
+from orm.base_table import BaseTable
 from orm.fields import BaseField, IntergerField, TextField
 
 
@@ -6,7 +6,7 @@ class LoanEntity(BaseTable):
     __table_name__ = 'Loan'
 
     id = IntergerField(primary_key=True)
-    person_id = TextField()
+    person_id = IntergerField()
     person_type = TextField(default='Student')
     lib_item_id = IntergerField()
     lib_item_type = TextField()

@@ -1,5 +1,7 @@
 from .database import Database
 from .fields import BaseField, IntergerField, TextField, BooleanField
+from .mapper import SQLiteMapper
+from .query import QueryObject, Criteria
 
 # Compare types of atributes in object and field types in models
 TYPES_MAP = {
@@ -32,32 +34,30 @@ def _is_compatible(lg_type, db_type):
 
 class BaseTable:
     __table_name__ = None
+    __mapper__ = SQLiteMapper()
 
-    def construct_insert_statement(self, obj_attr_dict):
-        '''Construct SQL insert statement from object attributes dict'''
-        table_name = self.__class__.__table_name__
-        if len(obj_attr_dict) == 0:
-            raise Exception('Object attributes null')
-        sql_fields_str = ''
-        for attr_value in obj_attr_dict.values():
-            db_field_value = convert_object_field_to_db_field(attr_value)
-            # Concat the fields' values
-            if type(db_field_value) is int:
-                sql_fields_str += str(db_field_value)
-            elif type(db_field_value) is str:
-                sql_fields_str += db_field_value
+    def get_class(self):
+        return self._cls
 
-            sql_fields_str += ','
+    @classmethod
+    def get_column_list(cls):
+        column_list = []
+        for attr_name, attr_value in cls.__dict__.items():
+            if isinstance(attr_value, BaseField):
+                column_list.append(attr_name)
 
-        if sql_fields_str[-1] == ',':
-            sql_fields_str = sql_fields_str[:-1]
+        return column_list
 
-        if sql_fields_str:
-            fields_to_insert = ','.join(obj_attr_dict.keys())
-            sql_string = 'INSERT INTO %s (%s) VALUES (%s)' % (table_name, fields_to_insert, sql_fields_str)
-            return sql_string
-        else:
-            raise Exception('Object attributes null')
+    @classmethod
+    def get_table_name(cls):
+        return cls.__table_name__
+
+    @classmethod
+    def get_column_for_field(cls, field_name: str):
+        if field_name not in cls.get_column_list():
+            raise Exception('Column %s does not exist' % field_name)
+
+        return field_name
 
     def construct_delete_statement(self, primary_key_field):
         '''Construct SQL delete statement from object attributes dict'''
@@ -133,13 +133,7 @@ class BaseTable:
             print('Table not existed')
         else:
             # Insert a new row
-            sql_str = self.construct_insert_statement(obj_to_save)
-            print(sql_str)
-            db = Database.get_db_instance()
-            cursor = db.cursor()
-            cursor.execute(sql_str)
-            db.commit()
-            print('Insert successfully')
+            BaseTable.__mapper__.insert_object(self.__class__, obj_to_save)
 
     @classmethod
     def _find_old(cls, filter_dict={}, operator='AND', search_like=False):
@@ -210,10 +204,6 @@ class BaseTable:
         if not primary_key_field:
             raise Exception('Cannot find primary key')
 
-        sql_str = self.construct_delete_statement(primary_key_field)
-        print(sql_str)
-        db = Database.get_db_instance()
-        cursor = db.cursor()
-        cursor.execute(sql_str)
-        db.commit()
-        print('Delete successfully')
+        criteria = Criteria.equal_to(primary_key_field['name'], primary_key_field['value'])
+        BaseTable.__mapper__.delete_objects_where(self.__class__,
+                                                  criteria.generate_sql_clause(self.__class__, BaseTable.__mapper__))
