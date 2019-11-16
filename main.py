@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import json
-from utils.search import SearchUtil, SearchResult, LibEntitySearchHelper
-from utils.printer import NPrinter
-from utils.exporter import FileExporter
-from utils.search import SimpleSearchCondition
-from models import DATA
 
-from flask import Flask, request, make_response, abort
-from orm import Database
+from flask import Flask, request, make_response
+
 from entities.lib_entity import Book, Journal, LibItem
-from entities.loan_entity import LoanEntity
+from orm.database import Database
+from orm.query import QueryObject, Criteria, MatchCriteria
+from utils.exporter import FileExporter
+from utils.printer import NPrinter
+from utils.search import SearchUtil, SearchResult, LibEntitySearchHelper
+from utils.search import SimpleSearchCondition
 
 app = Flask(__name__)
 
@@ -43,70 +43,11 @@ def index():
         search_result = SearchResult(nprinter, fexporter)
         search_result.get_results(data)
     else:
-        data = LibItem.find(recursive=True)
+        data = LibItem.find_old(recursive=True)
         for d in data:
             d.type = d.__class__.__name__
 
     response = make_response(json.dumps(data, default=lambda o: o.__dict__))
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
-
-
-@app.route('/', methods=['DELETE'])
-def delete():
-    id = request.values.get('id')
-    if not id:
-        return abort(400)
-
-    data = LibItem.find({'id': id}, recursive=True)
-    for obj in data:
-        obj.delete()
-
-    response = make_response(json.dumps({'msg': 'Successfully'}, default=lambda o: o.__dict__))
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
-
-
-@app.route('/', methods=['POST'])
-def create():
-    data = request.json
-    if not data:
-        return abort(400)
-
-    if data['type'] == 'Book':
-        book = Book()
-        book.title = data['title']
-        book.title = data['description']
-        book.title = data['author']
-        book.save()
-    elif data['type'] == 'Journal':
-        journal = Journal()
-        journal.title = data['title']
-        journal.description = data['description']
-        journal.event = data['event']
-        journal.save()
-
-    response = make_response(json.dumps({'msg': 'Successfully'}, default=lambda o: o.__dict__))
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
-
-
-@app.route('/loan')
-def loan():
-    lib_item_id = request.values.get('id')
-    lib_item_type = request.values.get('type')
-
-    if not lib_item_id or not lib_item_type:
-        return abort(400)
-
-    loan = LoanEntity()
-    loan.lib_item_id = lib_item_id
-    loan.lib_item_type = lib_item_type
-    loan.borrow_date = '13-11-2019'
-    loan.return_date = '15-11-2019'
-    loan.save()
-
-    response = make_response(json.dumps({'msg': 'Successfully'}, default=lambda o: o.__dict__))
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
@@ -122,5 +63,27 @@ if __name__ == '__main__':
     # # Fetch data
     # data = search_util.do_search()
     # print(data)
+    # app.run('0.0.0.0', debug=True)
+    # Insert data
+    # for i in range(10):
+    #     book = Book()
+    #     book.title = 'Book %s' % i
+    #     book.description = 'Description for Book %s' % i
+    #     book.author = 'Author %s' % i
+    #     book.save()
+    #
+    #     journal = Journal()
+    #     journal.title = 'Journal %s' % i
+    #     journal.description = 'Description for Journal %s' % i
+    #     journal.event = 'Event %s' % i
+    #     journal.save()
 
-    app.run('0.0.0.0', debug=True)
+    # Find
+    query_obj = QueryObject(LibItem, recursive=True)
+    query_obj.add_criteria(Criteria.greater_than('id', 1))
+    # query_obj.add_criteria(Criteria.equal_to('title', 'Book title'))
+    # query_obj.add_criteria(MatchCriteria('description', 'Book'))
+    results = query_obj.execute()
+    for obj in results:
+        print(obj)
+    print(results)

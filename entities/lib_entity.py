@@ -1,4 +1,4 @@
-from orm import BaseTable
+from orm.base_table import BaseTable
 from orm.fields import IntergerField, TextField
 
 

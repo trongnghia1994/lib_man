@@ -9,20 +9,19 @@ TYPES_MAP = {
 }
 
 
-# Convert type
-def convert_object_field_to_db_field(obj_field_value):
+def convert_object_field_to_db_field(field_value):
     '''Generate value for DB field from corresponding object field'''
     db_value = None
-    if type(obj_field_value) is int:
-        db_value = int(obj_field_value)
-    elif type(obj_field_value) is str:
-        db_value = "'" + obj_field_value + "'"
-    elif type(obj_field_value) is bool:
-        db_value = int(obj_field_value)
-    elif obj_field_value is None:
+    if type(field_value) is int:
+        db_value = int(field_value)
+    elif type(field_value) is str:
+        db_value = "'" + field_value + "'"
+    elif type(field_value) is bool:
+        db_value = int(field_value)
+    elif field_value is None:
         db_value = 'NULL'
     else:
-        raise Exception('Unsupport type %s' % obj_field_value)
+        raise Exception('Unsupport type %s' % field_value)
 
     return db_value
 
@@ -61,7 +60,7 @@ class BaseTable:
             raise Exception('Object attributes null')
 
     def construct_delete_statement(self, primary_key_field):
-        '''Construct SQL insert statement from object attributes dict'''
+        '''Construct SQL delete statement from object attributes dict'''
         table_name = self.__class__.__table_name__
 
         db_field_value = convert_object_field_to_db_field(primary_key_field['value'])
@@ -90,7 +89,8 @@ class BaseTable:
                             sql_string_list.append(
                                 "%s like %s" % (attr_name, db_value))
                     else:
-                        sql_string_list.append('%s=%s' % (attr_name, convert_object_field_to_db_field(attr_value)))
+                        sql_string_list.append(
+                            '%s=%s' % (attr_name, convert_object_field_to_db_field(attr_value)))
 
             # Concat every field values in condition
             sql_string += (' %s ' % operator).join(sql_string_list)
@@ -142,7 +142,7 @@ class BaseTable:
             print('Insert successfully')
 
     @classmethod
-    def _find(cls, filter_dict={}, operator='AND', search_like=False):
+    def _find_old(cls, filter_dict={}, operator='AND', search_like=False):
         sql_str = cls.construct_select_statement(filter_dict, operator, search_like)
         print(sql_str)
         db = Database.get_db_instance()
@@ -156,13 +156,30 @@ class BaseTable:
         return results
 
     @classmethod
-    def find(cls, filter_dict={}, operator='AND', recursive=False, search_like=False):
+    def _find(cls, criteria=[], operator='AND'):
+        query_obj = QueryObject(cls, criteria, operator)
+        results = query_obj.execute()
+        return results
+
+    @classmethod
+    def find(cls, criteria=[], operator='AND', recursive=False):
         results = []
         if not recursive:
-            results = cls._find(filter_dict, operator, search_like)
+            results = cls._find(criteria, operator)
         else:
             for sub_class in cls.__subclasses__():
-                results.extend(sub_class._find(filter_dict, operator, search_like))
+                results.extend(sub_class._find(criteria, operator))
+
+        return results
+
+    @classmethod
+    def find_old(cls, filter_dict={}, operator='AND', recursive=False, search_like=False):
+        results = []
+        if not recursive:
+            results = cls._find_old(filter_dict, operator, search_like)
+        else:
+            for sub_class in cls.__subclasses__():
+                results.extend(sub_class._find_old(filter_dict, operator, search_like))
 
         return results
 

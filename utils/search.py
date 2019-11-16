@@ -33,7 +33,7 @@ class LibEntitySearchHelper(SearchHelper):
         self._query = query
 
     def execute(self):
-        results = LibItem.find(self._condition.fields_data, self._condition.operator, recursive=True, search_like=True)
+        results = LibItem.find_old(self._condition.fields_data, self._condition.operator, recursive=True, search_like=True)
         return results
 
 

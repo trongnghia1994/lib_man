@@ -21,19 +21,21 @@ def init_db():
 
 def create_test_data():
     book = Book()
-    book.id = 6
-    book.title = 'How was steel tempered'
+    book.id = 2
+    book.title = '3 nguoi thay vi dai'
     # book.description = 'New Book'
     book.author = 'Nicolai Ostrovski'
     book.save()
 
     journal = Journal()
-    journal.id = 2
+    journal.id = 1
     journal.title = 'Privacy Preserving in Open data'
     journal.description = 'A journal in Data Privacy'
     # journal.event = 'HCM Journal'
     journal.save()
 
+
+create_test_data()
 
 # init_db()
 # create_test_data()
@@ -51,5 +53,5 @@ def create_test_data():
 # book.author = 'N/A'
 # book.save()
 
-results = LibItem.find({'id': 1, 'title': 'dai'}, search_like=True, recursive=True)
-print(results)
+# results = LibItem.find({'title': '3 nguoi thay vi dai'}, search_like=False, recursive=True)
+# print(results)
