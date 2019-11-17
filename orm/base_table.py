@@ -1,13 +1,15 @@
 from .database import Database
-from .fields import BaseField, IntergerField, TextField, BooleanField
+from .fields import BaseField, IntegerField, TextField, BooleanField, DateField
 from .mapper import SQLiteMapper
 from .query import QueryObject, Criteria
+from datetime import datetime
 
 # Compare types of atributes in object and field types in models
 TYPES_MAP = {
-    int: IntergerField,
+    int: IntegerField,
     str: TextField,
     bool: BooleanField,
+    datetime: DateField,
 }
 
 
@@ -59,13 +61,6 @@ class BaseTable:
 
         return field_name
 
-    def construct_delete_statement(self, primary_key_field):
-        '''Construct SQL delete statement from object attributes dict'''
-        table_name = self.__class__.__table_name__
-
-        db_field_value = convert_object_field_to_db_field(primary_key_field['value'])
-        return 'DELETE FROM %s WHERE %s = %s' % (table_name, primary_key_field['name'], db_field_value)
-
     @classmethod
     def construct_select_statement(cls, filter_dict={}, operator='AND', search_like=False):
         _class = cls.__dict__
@@ -109,34 +104,33 @@ class BaseTable:
         return table_existed
 
     def save(self):
-        _object = self.__dict__
-        _class = {}
+        _object_dict = self.__dict__
+        _class_attr_dict = {}
         for attr_name, attr_value in self.__class__.__dict__.items():
             if isinstance(attr_value, BaseField):
-                _class[attr_name] = attr_value
+                _class_attr_dict[attr_name] = attr_value
 
-        obj_to_save = {}
-        # Check attribute of object and compare with class fields, if same get it
-        for attr_name, attr_value in _object.items():
-            if attr_name in _class and _is_compatible(
-                    type(_object[attr_name]), type(_class[attr_name])):
-                obj_to_save[attr_name] = attr_value
+        obj_dict_to_save = {}
+        # Check each attribute of object and compare with class fields, if compatible get it
+        for attr_name, attr_value in _object_dict.items():
+            if attr_name in _class_attr_dict and _is_compatible(
+                    type(_object_dict[attr_name]), type(_class_attr_dict[attr_name])):
+                obj_dict_to_save[attr_name] = attr_value
 
         # Populate default values for non-primary key field
-        for attr_name in _class:
-            if attr_name not in obj_to_save and not _class[attr_name].primary_key:
-                obj_to_save[attr_name] = _class[attr_name].default
+        for attr_name in _class_attr_dict:
+            if attr_name not in obj_dict_to_save and not _class_attr_dict[attr_name].primary_key:
+                obj_dict_to_save[attr_name] = _class_attr_dict[attr_name].default
 
-        print('Object to save', obj_to_save)
+        print('Object to save', obj_dict_to_save)
         if not self._check_table_exists():
-            # Create table here
             print('Table not existed')
         else:
             # Insert a new row
-            BaseTable.__mapper__.insert_object(self.__class__, obj_to_save)
+            BaseTable.__mapper__.insert_object(self.__class__, obj_dict_to_save)
 
     @classmethod
-    def _find_old(cls, filter_dict={}, operator='AND', search_like=False):
+    def execute_find_old(cls, filter_dict={}, operator='AND', search_like=False):
         sql_str = cls.construct_select_statement(filter_dict, operator, search_like)
         print(sql_str)
         db = Database.get_db_instance()
@@ -150,8 +144,9 @@ class BaseTable:
         return results
 
     @classmethod
-    def _find(cls, criteria=[], operator='AND'):
-        query_obj = QueryObject(cls, criteria, operator)
+    def execute_find(cls, criteria, operator='AND'):
+        query_obj = QueryObject(cls, operator)
+        query_obj.set_criteria(criteria)
         results = query_obj.execute()
         return results
 
@@ -159,10 +154,10 @@ class BaseTable:
     def find(cls, criteria=[], operator='AND', recursive=False):
         results = []
         if not recursive:
-            results = cls._find(criteria, operator)
+            results = cls.execute_find(criteria, operator)
         else:
             for sub_class in cls.__subclasses__():
-                results.extend(sub_class._find(criteria, operator))
+                results.extend(sub_class.execute_find(criteria, operator))
 
         return results
 
@@ -170,25 +165,10 @@ class BaseTable:
     def find_old(cls, filter_dict={}, operator='AND', recursive=False, search_like=False):
         results = []
         if not recursive:
-            results = cls._find_old(filter_dict, operator, search_like)
+            results = cls.execute_find_old(filter_dict, operator, search_like)
         else:
             for sub_class in cls.__subclasses__():
-                results.extend(sub_class._find_old(filter_dict, operator, search_like))
-
-        return results
-
-    @classmethod
-    def _search(cls, text, recursive=False):
-        pass
-
-    @classmethod
-    def search(cls, text, recursive=False):
-        results = []
-        if not recursive:
-            results = cls._search(text)
-        else:
-            for sub_class in cls.__subclasses__():
-                results.extend(sub_class._search(text))
+                results.extend(sub_class.execute_find_old(filter_dict, operator, search_like))
 
         return results
 

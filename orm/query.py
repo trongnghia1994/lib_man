@@ -12,6 +12,10 @@ class Criteria:
         return Criteria('>', field_name, value)
 
     @staticmethod
+    def less_than_or_equal(field_name: str, value: object):
+        return Criteria('<=', field_name, value)
+
+    @staticmethod
     def equal_to(field_name: str, value: object):
         return Criteria('=', field_name, value)
 
@@ -19,9 +23,9 @@ class Criteria:
     def match(field_name: str, value: object):
         return MatchCriteria(field_name, value)
 
-    def generate_sql_clause(self, cls, mapper: Mapper) -> str:
+    def generate_sql_clause(self, cls, mapper_cls) -> str:
         return cls.get_column_for_field(self._field) + self._sql_operator + str(
-            mapper.convert_to_db_value(cls, self._value))
+            mapper_cls.convert_to_db_value(self._value))
 
 
 class MatchCriteria(Criteria):
@@ -29,18 +33,21 @@ class MatchCriteria(Criteria):
         self._field = field
         self._value = value
 
-    def generate_sql_clause(self, cls, mapper: Mapper) -> str:
-        return 'UPPER(' + cls.get_column_for_field(self._field) + ') LIKE UPPER(' + str(
-            mapper.convert_to_db_value(self._value)) + ')'
+    def generate_sql_clause(self, cls, mapper_cls) -> str:
+        pattern_str = "'%" + str(mapper_cls.convert_to_db_value(self._value))[1:-1].upper() + "%'"
+        return 'UPPER(' + cls.get_column_for_field(self._field) + ') LIKE ' + pattern_str
 
 
 class QueryObject:
-    def __init__(self, cls, criteria: list = [], operator='AND', recursive=False, mapper_cls=SQLiteMapper):
-        self._cls = cls
-        self._criteria = criteria
-        self._mapper = mapper_cls()
+    def __init__(self, entity_cls, operator='AND', recursive=False, mapper_cls=SQLiteMapper):
+        self._entity_cls = entity_cls
+        self._criteria = []
+        self._mapper_cls = mapper_cls
         self._operator = operator
         self._recursive = recursive
+
+    def set_criteria(self, criteria):
+        self._criteria = criteria
 
     def add_criteria(self, one_criteria: Criteria):
         self._criteria.append(one_criteria)
@@ -51,18 +58,19 @@ class QueryObject:
             if clause_str:
                 clause_str += ' %s ' % self._operator
 
-            clause_str += c.generate_sql_clause(self._cls, self._mapper)
+            clause_str += c.generate_sql_clause(self._entity_cls, self._mapper_cls)
 
         return clause_str
 
     def _execute(self):
-        return self._mapper.find_objects_where(self._cls, self.generate_where_clause())
+        return self._mapper_cls.find_objects_where(self._entity_cls, self.generate_where_clause())
 
     def execute(self):
         if self._recursive:
             results = []
-            for child_cls in self._cls.__subclasses__():
-                child_query_obj = QueryObject(child_cls, self._criteria, self._operator, self._operator)
+            for child_entity_cls in self._entity_cls.__subclasses__():
+                child_query_obj = QueryObject(child_entity_cls, self._operator)
+                child_query_obj.set_criteria(self._criteria)
                 results.extend(child_query_obj._execute())
             return results
         else:

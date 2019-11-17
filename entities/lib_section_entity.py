@@ -1,34 +1,34 @@
-from orm import BaseTable
-from orm.fields import IntergerField, TextField
+from orm.base_table import BaseTable
+from orm.fields import IntegerField, TextField
 
 
-class LibSection:
-    def __init__(self, id, name='', description=''):
-        self.id = id
-        self.name = name
-        self.description = description
-
-    def __str__(self):
-        return '%s|%s' % (self.name, self.description)
+class LibSection(BaseTable):
+    pass
 
 
-class CirculationSection(LibSection, BaseTable):
+class CircularSection(LibSection):
     """The books section with a lot of books arranged into categories"""
 
-    __table_name__ = 'circular_section'
+    __table_name__ = 'CircularSection'
 
-    id = IntergerField(primary_key=True)
+    id = IntegerField(primary_key=True)
     name = TextField()
     description = TextField()
-    no_items = IntergerField()
+    no_items = IntegerField()
+
+    def __str__(self):
+        return '%s|%s|%s|%s' % (self.id, self.name, self.description, self.no_items)
 
 
-class MultimediaSection(LibSection, BaseTable):
+class MultimediaSection(LibSection):
     """The multimedia section with a lot of computers, electronic devices"""
 
-    __table_name__ = 'multimedia_section'
+    __table_name__ = 'MultimediaSection'
 
-    id = IntergerField(primary_key=True)
+    id = IntegerField(primary_key=True)
     name = TextField()
     description = TextField()
-    no_computers = IntergerField()
+    no_computers = IntegerField()
+
+    def __str__(self):
+        return '%s|%s|%s|%s' % (self.id, self.name, self.description, self.no_computers)

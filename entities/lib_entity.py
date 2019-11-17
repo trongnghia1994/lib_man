@@ -1,5 +1,5 @@
 from orm.base_table import BaseTable
-from orm.fields import IntergerField, TextField
+from orm.fields import IntegerField, TextField
 
 
 class LibItem(BaseTable):
@@ -9,7 +9,7 @@ class LibItem(BaseTable):
 class Book(LibItem):
     __table_name__ = 'Book'
 
-    id = IntergerField(primary_key=True)
+    id = IntegerField(primary_key=True)
     title = TextField()
     description = TextField()
     author = TextField()
@@ -21,7 +21,7 @@ class Book(LibItem):
 class Journal(LibItem):
     __table_name__ = 'Journal'
 
-    id = IntergerField(primary_key=True)
+    id = IntegerField(primary_key=True)
     title = TextField()
     description = TextField()
     event = TextField()

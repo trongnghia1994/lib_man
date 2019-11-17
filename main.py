@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import json
+import random
+from datetime import datetime, timedelta
 
 from flask import Flask, request, make_response
 
 from entities.lib_entity import Book, Journal, LibItem
-from entities.loan_entity import LoanEntity
+from entities.loan_entity import Loan
+from entities.member_entity import Student, Teacher
+from entities.lib_section_entity import CircularSection, MultimediaSection
 from orm.database import Database
 from orm.query import QueryObject, Criteria, MatchCriteria
 from utils.exporter import FileExporter
@@ -55,7 +59,7 @@ def index():
 
 if __name__ == '__main__':
     Database.init_db('lib_man.db')
-    # Run directly
+    # Print and export: Apply SOLID
     # nprinter = NPrinter()
     # fexporter = FileExporter('exports.txt')
     # search_condition = SimpleSearchCondition({'title': 'B1'})
@@ -65,28 +69,19 @@ if __name__ == '__main__':
     # data = search_util.do_search()
     # print(data)
     # app.run('0.0.0.0', debug=True)
-    # Insert data
-    # for i in range(10):
-    #     book = Book()
-    #     book.title = 'Book %s' % i
-    #     book.description = 'Description for Book %s' % i
-    #     book.author = 'Author %s' % i
-    #     book.save()
-    #
-    #     journal = Journal()
-    #     journal.title = 'Journal %s' % i
-    #     journal.description = 'Description for Journal %s' % i
-    #     journal.event = 'Event %s' % i
-    #     journal.save()
 
-    # Find
-    query_obj = QueryObject(LoanEntity, recursive=False)
-    query_obj.add_criteria(Criteria.greater_than('id', 5))
-    # query_obj.add_criteria(Criteria.equal_to('title', 'Book title'))
-    # query_obj.add_criteria(MatchCriteria('description', 'Book'))
-    results = query_obj.execute()
-    for obj in results:
-        print(obj)
+    # INSERT: in scripts file
+
+    # FIND
+    # query_obj = QueryObject(Book, recursive=False)
+    # query_obj.add_criteria(Criteria.greater_than('id', 5))
+    # # query_obj.add_criteria(Criteria.equal_to('title', 'Book title'))
+    # query_obj.add_criteria(MatchCriteria('description', 'test'))
+    # results = query_obj.execute()
+    # for obj in results:
+    #     print(obj)
+
+    # DELETE
     # obj_to_del = results[0]
     # print(obj_to_del)
     # obj_to_del.delete()
@@ -104,3 +99,17 @@ if __name__ == '__main__':
     #     loan.borrow_date = '18-11-2019'
     #     loan.return_date = '28-11-2019'
     #     loan.save()
+
+    # Loan
+    query_obj = QueryObject(Student, recursive=False)
+    query_obj.add_criteria(Criteria.equal_to('id', 1))
+    res = query_obj.execute()
+    me: Student = res[0] if res else None
+
+    if not me:
+        raise Exception('Cannot find anyone')
+
+    query_obj = QueryObject(Book, recursive=False)
+    query_obj.add_criteria(Criteria.equal_to('id', 3))
+    book_to_loan = query_obj.execute()[0]
+    me.borrow(book_to_loan, return_date=datetime.now() + timedelta(days=7))

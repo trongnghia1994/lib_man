@@ -1,7 +1,8 @@
 from orm.database import Database
 from orm import execute_sql
 from entities.lib_entity import Book, Journal, LibItem
-from entities.loan_entity import LoanEntity
+from entities.loan_entity import Loan
+from entities.member_entity import Teacher, Student
 
 Database.init_db('lib_man.db')
 
@@ -14,44 +15,39 @@ def init_db():
     execute_sql(
         'CREATE TABLE IF NOT EXISTS CircularSection (id integer primary key autoincrement, name text, description text, no_items integer)')
     execute_sql(
-        'CREATE TABLE IF NOT EXISTS MultimediaSection (id integer primary key autoincrement, title text, description text, no_computers integer)')
+        'CREATE TABLE IF NOT EXISTS MultimediaSection (id integer primary key autoincrement, name text, description text, no_computers integer)')
     execute_sql(
         'CREATE TABLE IF NOT EXISTS Loan (id integer primary key autoincrement, person_id text, person_type text, lib_item_id integer, lib_item_type text, borrow_date text, return_date text)')
+    execute_sql(
+        'CREATE TABLE IF NOT EXISTS Student (id integer primary key autoincrement, name text)')
+    execute_sql(
+        'CREATE TABLE IF NOT EXISTS Teacher (id integer primary key autoincrement, name text, faculty text)')
 
 
 def create_test_data():
-    book = Book()
-    book.id = 2
-    book.title = '3 nguoi thay vi dai'
-    # book.description = 'New Book'
-    book.author = 'Nicolai Ostrovski'
-    book.save()
+    # for i in range(10):
+    #     book = Book()
+    #     book.title = 'Book %s' % i
+    #     book.description = 'Description for Book %s' % i
+    #     book.author = 'Author %s' % i
+    #     book.save()
+    #
+    #     journal = Journal()
+    #     journal.title = 'Journal %s' % i
+    #     journal.description = 'Description for Journal %s' % i
+    #     journal.event = 'Event %s' % i
+    #     journal.save()
 
-    journal = Journal()
-    journal.id = 1
-    journal.title = 'Privacy Preserving in Open data'
-    journal.description = 'A journal in Data Privacy'
-    # journal.event = 'HCM Journal'
-    journal.save()
+    for i in range(10):
+        t = Teacher()
+        t.name = 'Teacher %s' % i
+        t.faculty = 'Faculty %s' % (i % 3)
+        t.save()
+
+        s = Student()
+        s.name = 'Student %s' % i
+        s.save()
 
 
+init_db()
 create_test_data()
-
-# init_db()
-# create_test_data()
-# Test find
-# results = LibItem.find({'id': 6}, recursive=True)
-# results[0].delete()
-# last_book.delete()
-# print([(r.id, r.title) for r in results])
-
-# init_db()
-# book = Book()
-# # book.id = 6
-# book.title = '3 nguoi thay vi dai'
-# # book.description = 'New Book'
-# book.author = 'N/A'
-# book.save()
-
-# results = LibItem.find({'title': '3 nguoi thay vi dai'}, search_like=False, recursive=True)
-# print(results)

@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from .database import Database
+from datetime import datetime
 
 
 class Mapper:
@@ -26,7 +27,8 @@ class SQLiteMapper(Mapper):
     def __init__(self):
         pass
 
-    def convert_to_db_value(self, cls, field_value):
+    @staticmethod
+    def convert_to_db_value(field_value):
         '''Generate value for DB field from corresponding object field'''
         db_value = None
         if type(field_value) is int:
@@ -35,6 +37,8 @@ class SQLiteMapper(Mapper):
             db_value = "'" + field_value + "'"
         elif type(field_value) is bool:
             db_value = int(field_value)
+        elif type(field_value) is datetime:
+            db_value = "'" + field_value.strftime("%d-%m-%Y") + "'"
         elif field_value is None:
             db_value = 'NULL'
         else:
@@ -42,22 +46,24 @@ class SQLiteMapper(Mapper):
 
         return db_value
 
-    def find_objects_where(self, cls, where_clause):
-        column_list = ','.join(cls.get_column_list())
-        sql_str = 'SELECT ' + column_list + ' FROM ' + cls.get_table_name() + ' WHERE ' + where_clause
+    @staticmethod
+    def find_objects_where(entity_cls, where_clause):
+        column_list = ','.join(entity_cls.get_column_list())
+        sql_str = 'SELECT ' + column_list + ' FROM ' + entity_cls.get_table_name() + ' WHERE ' + where_clause
         print(sql_str)
         db = Database.get_db_instance()
         cursor = db.cursor()
         results = []
         for db_row in cursor.execute(sql_str).fetchall():
-            obj = cls()
+            obj = entity_cls()
             obj.__dict__.update(dict(db_row))
             results.append(obj)
 
         return results
 
-    def delete_objects_where(self, cls, where_clause):
-        sql_str = 'DELETE FROM ' + cls.get_table_name() + ' WHERE ' + where_clause
+    @staticmethod
+    def delete_objects_where(entity_cls, where_clause):
+        sql_str = 'DELETE FROM ' + entity_cls.get_table_name() + ' WHERE ' + where_clause
         print(sql_str)
         db = Database.get_db_instance()
         cursor = db.cursor()
@@ -65,14 +71,15 @@ class SQLiteMapper(Mapper):
         db.commit()
         print('Delete successfully')
 
-    def insert_object(self, cls, obj_dict: dict):
-        table_name = cls.get_table_name()
+    @staticmethod
+    def insert_object(entity_cls, obj_dict: dict):
+        table_name = entity_cls.get_table_name()
         sql_fields_str = ''
-        columns = cls.get_column_list()
+        columns = entity_cls.get_column_list()
         column_fields = []
         for attr_name, attr_value in obj_dict.items():
             if attr_name in columns:
-                db_field_value = self.convert_to_db_value(cls, attr_value)
+                db_field_value = SQLiteMapper.convert_to_db_value(attr_value)
                 # Concat the fields' values
                 if type(db_field_value) is int:
                     sql_fields_str += str(db_field_value)

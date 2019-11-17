@@ -4,7 +4,7 @@ class BaseField:
         self.default = default
 
 
-class IntergerField(BaseField):
+class IntegerField(BaseField):
     pass
 
 
@@ -13,4 +13,8 @@ class TextField(BaseField):
 
 
 class BooleanField(BaseField):
+    pass
+
+
+class DateField(BaseField):
     pass
