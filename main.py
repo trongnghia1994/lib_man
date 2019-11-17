@@ -73,17 +73,23 @@ if __name__ == '__main__':
     # INSERT: in scripts file
 
     # FIND
-    # query_obj = QueryObject(Book, recursive=False)
-    # query_obj.add_criteria(Criteria.greater_than('id', 5))
-    # # query_obj.add_criteria(Criteria.equal_to('title', 'Book title'))
-    # query_obj.add_criteria(MatchCriteria('description', 'test'))
-    # results = query_obj.execute()
-    # for obj in results:
-    #     print(obj)
+    query_obj = QueryObject(LibItem, find_children=True)
+    query_obj.add_criteria(Criteria.greater_than('id', 5))
+    # query_obj.add_criteria(Criteria.equal_to('title', 'Book title'))
+    query_obj.add_criteria(MatchCriteria('description', 'test'))
+    results = query_obj.execute()
+    for obj in results:
+        print(obj)
 
     # DELETE
     # obj_to_del = results[0]
     # print(obj_to_del)
+    # obj_to_del.delete()
+
+    # query_obj = QueryObject(Book, find_children=False)
+    # query_obj.add_criteria(Criteria.equal_to('id', 5))
+    # results = query_obj.execute()
+    # obj_to_del = results[0]
     # obj_to_del.delete()
 
     # book = Book()
@@ -91,14 +97,6 @@ if __name__ == '__main__':
     # book.description = 'Description for Book test 2'
     # book.author = 'Author test 2'
     # book.save()
-
-    # for i in range(10):
-    #     loan = LoanEntity()
-    #     loan.person_id = 1
-    #     loan.person_type = 'Student' if i % 2 == 0 else 'Teacher'
-    #     loan.borrow_date = '18-11-2019'
-    #     loan.return_date = '28-11-2019'
-    #     loan.save()
 
     # Loan
     query_obj = QueryObject(Student, recursive=False)

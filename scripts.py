@@ -49,10 +49,22 @@ def create_test_data():
     #     s.name = 'Student %s' % i
     #     s.save()
 
-    cs = MultimediaSection()
-    cs.name = 'Section test'
-    cs.number_of_computers = 12
-    cs.save()
+    # cs = MultimediaSection()
+    # cs.name = 'Section test'
+    # cs.number_of_computers = 12
+    # cs.save()
+
+    # for i in range(10):
+    #     loan = Loan()
+    #     loan.person_id = 1
+    #     loan.person_type = 'Student' if i % 2 == 0 else 'Teacher'
+    #     loan.borrow_date = '18-11-2019'
+    #     loan.return_date = '28-11-2019'
+    #     loan.save()
+
+    book = Book()
+    book.title = 'Title'
+    book.save()
 
 
 # init_db()

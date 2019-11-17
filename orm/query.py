@@ -39,12 +39,12 @@ class MatchCriteria(Criteria):
 
 
 class QueryObject:
-    def __init__(self, entity_cls, operator='AND', recursive=False, mapper_cls=SQLiteMapper):
+    def __init__(self, entity_cls, operator='AND', find_children=False, mapper_cls=SQLiteMapper):
         self._entity_cls = entity_cls
         self._criteria = []
         self._mapper_cls = mapper_cls
         self._operator = operator
-        self._recursive = recursive
+        self._find_children = find_children
 
     def set_criteria(self, criteria):
         self._criteria = criteria
@@ -66,7 +66,7 @@ class QueryObject:
         return self._mapper_cls.find_objects_where(self._entity_cls, self.generate_where_clause())
 
     def execute(self):
-        if self._recursive:
+        if self._find_children:
             results = []
             for child_entity_cls in self._entity_cls.__subclasses__():
                 child_query_obj = QueryObject(child_entity_cls, self._operator)
