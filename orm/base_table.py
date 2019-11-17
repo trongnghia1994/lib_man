@@ -14,7 +14,7 @@ TYPES_MAP = {
 
 
 def convert_object_field_to_db_field(field_value):
-    '''Generate value for DB field from corresponding object field'''
+    '''OLD: Generate value for DB field from corresponding object field'''
     db_value = None
     if type(field_value) is int:
         db_value = int(field_value)
@@ -46,7 +46,8 @@ class BaseTable:
         column_list = []
         for attr_name, attr_value in cls.__dict__.items():
             if isinstance(attr_value, BaseField):
-                column_list.append(attr_name)
+                column_name = attr_value.column_name if attr_value.column_name else attr_name
+                column_list.append(column_name)
 
         return column_list
 
@@ -56,10 +57,15 @@ class BaseTable:
 
     @classmethod
     def get_column_for_field(cls, field_name: str):
-        if field_name not in cls.get_column_list():
+        column_name = None
+        if field_name not in cls.__dict__:
             raise Exception('Column %s does not exist' % field_name)
+        else:
+            column_name = cls.__dict__[field_name].column_name
+            if not column_name:
+                column_name = field_name
 
-        return field_name
+        return column_name
 
     @classmethod
     def construct_select_statement(cls, filter_dict={}, operator='AND', search_like=False):

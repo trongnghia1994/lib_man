@@ -75,10 +75,11 @@ class SQLiteMapper(Mapper):
     def insert_object(entity_cls, obj_dict: dict):
         table_name = entity_cls.get_table_name()
         sql_fields_str = ''
-        columns = entity_cls.get_column_list()
+        # columns = entity_cls.get_column_list()
         column_fields = []
         for attr_name, attr_value in obj_dict.items():
-            if attr_name in columns:
+            column_name = entity_cls.get_column_for_field(attr_name)
+            if column_name:
                 db_field_value = SQLiteMapper.convert_to_db_value(attr_value)
                 # Concat the fields' values
                 if type(db_field_value) is int:
@@ -88,7 +89,7 @@ class SQLiteMapper(Mapper):
 
                 sql_fields_str += ','
 
-                column_fields.append(attr_name)
+                column_fields.append(column_name)
 
         if sql_fields_str[-1] == ',':
             sql_fields_str = sql_fields_str[:-1]

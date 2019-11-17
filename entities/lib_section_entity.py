@@ -14,7 +14,7 @@ class CircularSection(LibSection):
     id = IntegerField(primary_key=True)
     name = TextField()
     description = TextField()
-    no_items = IntegerField()
+    number_of_items = IntegerField(column_name='no_items')
 
     def __str__(self):
         return '%s|%s|%s|%s' % (self.id, self.name, self.description, self.no_items)
@@ -28,7 +28,7 @@ class MultimediaSection(LibSection):
     id = IntegerField(primary_key=True)
     name = TextField()
     description = TextField()
-    no_computers = IntegerField()
+    number_of_computers = IntegerField(column_name='no_computers')
 
     def __str__(self):
         return '%s|%s|%s|%s' % (self.id, self.name, self.description, self.no_computers)

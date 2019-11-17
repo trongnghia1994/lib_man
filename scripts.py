@@ -2,6 +2,7 @@ from orm.database import Database
 from orm import execute_sql
 from entities.lib_entity import Book, Journal, LibItem
 from entities.loan_entity import Loan
+from entities.lib_section_entity import CircularSection, MultimediaSection
 from entities.member_entity import Teacher, Student
 
 Database.init_db('lib_man.db')
@@ -38,16 +39,21 @@ def create_test_data():
     #     journal.event = 'Event %s' % i
     #     journal.save()
 
-    for i in range(10):
-        t = Teacher()
-        t.name = 'Teacher %s' % i
-        t.faculty = 'Faculty %s' % (i % 3)
-        t.save()
+    # for i in range(10):
+    #     t = Teacher()
+    #     t.name = 'Teacher %s' % i
+    #     t.faculty = 'Faculty %s' % (i % 3)
+    #     t.save()
+    #
+    #     s = Student()
+    #     s.name = 'Student %s' % i
+    #     s.save()
 
-        s = Student()
-        s.name = 'Student %s' % i
-        s.save()
+    cs = MultimediaSection()
+    cs.name = 'Section test'
+    cs.number_of_computers = 12
+    cs.save()
 
 
-init_db()
+# init_db()
 create_test_data()
